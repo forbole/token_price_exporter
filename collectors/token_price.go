@@ -46,11 +46,13 @@ func (collector *TokensPriceGauge) Collect(ch chan<- prometheus.Metric) {
 	sp, err := cg.SimplePrice(ids, vc)
 	if err != nil {
 		ch <- prometheus.NewInvalidMetric(collector.Desc, err)
+		return
 	}
 
 	for _, token := range collector.Tokens {
-		tokenPrice := (*sp)[token.ID]
-		ch <- prometheus.MustNewConstMetric(collector.Desc, prometheus.GaugeValue, float64(tokenPrice["usd"]), token.ID, token.Denom)
+		if tokenPrice, ok := (*sp)[token.ID]; ok {
+			ch <- prometheus.MustNewConstMetric(collector.Desc, prometheus.GaugeValue, float64(tokenPrice["usd"]), token.ID, token.Denom)
+		}
 	}
 
 }
